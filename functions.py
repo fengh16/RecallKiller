@@ -1,4 +1,4 @@
-import itchat
+﻿import itchat
 from itchat.content import *
 import time
 import os
@@ -21,7 +21,7 @@ def getTime():
 # 对不同信息进行处理
 def msgDealing(msg, isDownloadable = False):
     try:
-        print(msg)
+        # print(msg)
         # 获取时间
         timeStr = getTime()
         # 把消息添加到msgRec里面
@@ -37,7 +37,7 @@ def msgDealing(msg, isDownloadable = False):
         # 搜一下发消息这个人
         friend = itchat.search_friends(userName=searingName)
         if not friend is None:
-            print("Received from friend.")
+            #print("Received from friend.")
             # msg中添加这个人的身份信息
             if friend['RemarkName'] is None:
                 msgRec[msg['MsgId']]['FromName'] = friend['NickName'] + "（没有备注）"
@@ -49,11 +49,11 @@ def msgDealing(msg, isDownloadable = False):
         else:
             group = itchat.search_chatrooms(userName=searingName)
             if not group is None:
-                print("Received from group.")
+                #print("Received from group.")
                 msgRec[msg['MsgId']]['FromName'] = msg['ActualNickName'] + "（在群\"" + group['NickName'] + "\"里）"
                 msgSavingStr += "<group>" + group['NickName'] + "<user>" + msg['ActualNickName'] + "</user></group>"
             else:
-                print("Received from mp.")
+                #print("Received from mp.")
                 mp = itchat.search_mps(userName=searingName)
                 msgRec[msg['MsgId']]['FromName'] = "公众号：" + mp['NickName']
                 msgSavingStr += "<mp>" + mp['NickName'] + "</mp>"
@@ -96,40 +96,19 @@ def msgDealing(msg, isDownloadable = False):
 
 # 首先要注册一下信息，也就是判断一下接收到的信息中有哪些是需要进行处理的
 # 在这里先筛选出来能够下载的
-@itchat.msg_register([PICTURE, RECORDING, ATTACHMENT, VIDEO], isFriendChat=True, isGroupChat=False, isMpChat=False)
-def downloadable1(msg):
-    msgDealing(msg, isDownloadable=True)
-@itchat.msg_register([PICTURE, RECORDING, ATTACHMENT, VIDEO], isFriendChat=False, isGroupChat=True, isMpChat=False)
-def downloadable2(msg):
-    msgDealing(msg, isDownloadable=True)
-@itchat.msg_register([PICTURE, RECORDING, ATTACHMENT, VIDEO], isFriendChat=False, isGroupChat=False, isMpChat=True)
-def downloadable3(msg):
+@itchat.msg_register([PICTURE, RECORDING, ATTACHMENT, VIDEO], isFriendChat=True, isGroupChat=True, isMpChat=True)
+def downloadable(msg):
     msgDealing(msg, isDownloadable=True)
 
 # 纯文本格式
-@itchat.msg_register([TEXT, MAP, CARD, SHARING, FRIENDS], isFriendChat=True, isGroupChat=False, isMpChat=False)
-def text1(msg):
-    msgDealing(msg, isDownloadable=False)
-@itchat.msg_register([TEXT, MAP, CARD, SHARING, FRIENDS], isFriendChat=False, isGroupChat=True, isMpChat=False)
-def text2(msg):
-    msgDealing(msg, isDownloadable=False)
-@itchat.msg_register([TEXT, MAP, CARD, SHARING, FRIENDS], isFriendChat=False, isGroupChat=False, isMpChat=True)
-def text3(msg):
+@itchat.msg_register([TEXT, MAP, CARD, SHARING, FRIENDS], isFriendChat=True, isGroupChat=True, isMpChat=True)
+def text(msg):
     msgDealing(msg, isDownloadable=False)
 
 # Note类，也就是说撤回和一些其他的网页版微信不支持的东西
-@itchat.msg_register([NOTE], isFriendChat=True, isGroupChat=False, isMpChat=False)
-def note1(msg):
-    noteDeal(msg)
-@itchat.msg_register([NOTE], isFriendChat=False, isGroupChat=True, isMpChat=False)
-def note2(msg):
-    noteDeal(msg)
-@itchat.msg_register([NOTE], isFriendChat=False, isGroupChat=False, isMpChat=True)
-def note3(msg):
-    noteDeal(msg)
-
-def noteDeal(msg):
-    print(msg)
+@itchat.msg_register([NOTE], isFriendChat=True, isGroupChat=True, isMpChat=True)
+def note(msg):
+    # print(msg)
     # 判断里面有没有出现replacemsg，如果有的话就说明是撤回
     if re.search(r"<replacemsg>", msg['Content']) != None:
         try:
@@ -173,4 +152,5 @@ def noteDeal(msg):
         itchat.send("不支持的消息", toUserName='filehelper')
 
 itchat.auto_login(hotReload=True)
+print("开始防撤回……请勿点击控制台程序！")
 itchat.run()
